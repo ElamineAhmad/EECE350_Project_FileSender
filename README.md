@@ -114,3 +114,37 @@ Settings:
 Uses build_packets and decode_packet from packets.py and UnreliableChannel from unreliable_channel.py (member 1).
 
 Requirements: Python 3, no additional libraries (socket, time, os from the standard library).
+
+
+Receiver and Acknowledgements (receiver.py): Done by Member 3: Ahmad El Amine ID:202600699
+
+what it does:
+- Listens for UDP packets on 127.0.0.1:5000 (by default) and decodes their 7-byte headers using decode_packet(packet).
+- Sends cumulative ACKs carrying the next expected sequence number using encode_packet(ACK, expected).
+- Accepts in-order packets and advances the expected sequence number.
+- Buffers out-of-order packets and sends a duplicate ACK for the missing sequence number.
+- Fills gaps by delivering buffered consecutive packets in order and sending a single cumulative ACK.
+- Discards duplicate packets and re-sends the current cumulative ACK.
+- Reassembles the file once the END packet is delivered in order, writes it to disk, and verifies its SHA-256 hash against the END payload (reporting MATCH or MISMATCH).
+- Lingers briefly after END to re-ACK late retransmissions in case the final ACK was lost.
+
+Display:
+- Live color-coded event log, one line per packet event:
+  - In-order packet: RECV <seq> in order → ACK <expected>
+  - Out-of-order packet: RECV <seq> out of order, buffered → DUP ACK <expected>
+  - Gap-filling packet: RECV <seq> fills gap (+<k> buffered) → ACK <expected>
+  - Duplicate packet: RECV <seq> duplicate, discarded → ACK <expected>
+- File verification status (SHA-256 MATCH or MISMATCH) and final receiver summary (packets received in order, out of order, duplicates, ACKs sent, transfer time, and integrity verdict).
+
+How to run the receiver:
+1. Start the receiver first:
+   python receiver.py [output_file] [--host 127.0.0.1] [--port 5000] [--linger 3]
+   (If output_file is omitted, it saves to received_test.txt by default.)
+2. Then run the sender in a second terminal:
+   python sender.py
+
+Settings (receiver):
+- output: Path where the reconstructed output file is saved (received_test.txt by default).
+- --host: IP address the receiver listens on (127.0.0.1 by default).
+- --port: UDP port the receiver listens on (5000 by default, matching sender.py).
+- --linger: Seconds to keep re-ACKing after END in case the final ACK was lost (3.0 s by default).
