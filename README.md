@@ -73,3 +73,44 @@ Settings
 Requirements
 
 Python 3. No additional libraries are required.
+
+
+Sending Packets: Done by Member 2: Yara Sleem ID:202601169
+
+what it does: manages sending the packets:
+ - keeps track of a sending window of N packets, the base (oldest unacknowledged packet), the next packet to send, the state of each packet, the sending time of each packet
+ - runs a timer for the oldest unacknowledged packet and retransmits it on timeout.
+ - retransmits a packet after 3 duplicate ACKs
+ - estimates the timeout like TCP: TimeoutInterval = EstimatedRTT + 4*DevRTT, (no RTT sample from retransmitted packets) and exponential backoff (doubled on timeout, capped at 2 s).
+ - sends and retransmits every packet, including END, through member 1's UnreliableChannel, never directly over the socket.
+ - counts transmissions, retransmissions, timeouts and total transfer time.
+ - has a function summary that returns a dictionary transmissions, retransmissions, timeouts, transfer time, and the summary of the channel written by member 1 Rami Ayoub
+
+Display:
+- settings at start: file name and size, number of packets, N, loss and reorder.
+- live window view, e.g. WINDOW [14–21] 14:retransmitted 15:sent ...
+- events: ACK x, TIMEOUT x, RETRANSMIT x, 3 DUP ACKS, RETRANSMIT x.
+- summary at the end: transmissions, retransmissions, timeouts, transfer time and the channel statistics from channel.summary().
+
+Implementation:
+Class Sending_Window(N, packets, sock, address, loss, reorder), where sock is a UDP socket and address is the receiver's (IP, port).
+Methods:
+- send(): sends new packets while the window has room.
+- receive(raw): handles an ACK (new ACK, duplicate ACK or fast retransmit).
+- check_timeout(): retransmits base if its timer expired.
+- show_window(): prints the current window and packet states.
+- summary(): returns transmissions, retransmissions, timeouts, transfer time and the channel summary.
+
+How to run the sender:
+1. Start the receiver first (member 3).
+2. python sender.py
+The sender reads test.txt and sends to 127.0.0.1:5000 (matches the receiver's port).
+
+Settings:
+- N: window size, the number of packets that can be sent but not yet acknowledged.
+- timeout: starts at 0.5 s, then follows the RTT estimate (between 0.05 s and capped at 2 s).
+- loss and reorder (explained in member 1's Settings section).
+  
+Uses build_packets and decode_packet from packets.py and UnreliableChannel from unreliable_channel.py (member 1).
+
+Requirements: Python 3, no additional libraries (socket, time, os from the standard library).
