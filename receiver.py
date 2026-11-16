@@ -1,5 +1,5 @@
 # Done by member 3 - Ahmad El Amine - 202600699
-# Receiver and acknowledgements (written with help from an AI assistant, reviewed by Ahmad)
+# Receiver and acknowledgements (written with help from an AI assistant, reviewed in detail by Ahmad)
 #
 # Run:  python receiver.py [output_file] [--host 127.0.0.1] [--port 5000] [--linger 3]
 import argparse
